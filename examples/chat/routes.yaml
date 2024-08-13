@@ -1,0 +1,9 @@
+room_subscribe:
+    path: /room/{roomId}/subscribe
+    controller: Examples\Controllers\ChatController::subscribe
+    defaults:
+        _middleware:
+            - Examples\Middleware\AuthMiddleware
+room_publish:
+    path: /room/{roomId}/publish
+    controller: Examples\Controllers\ChatController::publish

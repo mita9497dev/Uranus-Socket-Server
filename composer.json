@@ -1,0 +1,25 @@
+{
+    "name": "mita/uranus-socket-server",
+    "description": "A PHP Socket Server Library using Ratchet",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Mita\\UranusSocketServer\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "mita9497dev",
+            "email": "mita9497dev@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.4",
+        "cboden/ratchet": "^0.4.3",
+        "symfony/routing": "^5.0",
+        "php-di/php-di": "^6.3",
+        "symfony/config": "^5.4",
+        "symfony/yaml": "^5.4"
+    }
+}
