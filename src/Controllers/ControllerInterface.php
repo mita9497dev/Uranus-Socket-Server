@@ -1,9 +1,10 @@
 <?php 
 namespace Mita\UranusSocketServer\Controllers;
 
-use DI\ContainerBuilder;
+use Mita\UranusSocketServer\Packets\PacketInterface;
+use Ratchet\ConnectionInterface;
 
 interface ControllerInterface
 {
-    public function __construct(ContainerBuilder $containerBuilder);
+    public function handle(ConnectionInterface $conn, PacketInterface $message, array $params);
 }

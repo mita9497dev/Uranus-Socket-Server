@@ -2,6 +2,7 @@
 
 namespace Mita\UranusSocketServer\Middlewares;
 
+use Mita\UranusSocketServer\Packets\PacketInterface;
 use Ratchet\ConnectionInterface;
 
 interface MiddlewareInterface
@@ -14,5 +15,5 @@ interface MiddlewareInterface
      * @param callable $next
      * @return mixed
      */
-    public function handle(ConnectionInterface $conn, $msg, callable $next);
+    public function handle(ConnectionInterface $conn, PacketInterface $packet, callable $next);
 }

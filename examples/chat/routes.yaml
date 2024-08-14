@@ -1,9 +1,9 @@
-room_subscribe:
-    path: /room/{roomId}/subscribe
-    controller: Examples\Controllers\ChatController::subscribe
+join_room:
+    path: /room/{roomId}/join
+    controller: Mita\UranusSocketServer\Examples\Chat\Controllers\ChatController
     defaults:
         _middleware:
-            - Examples\Middleware\AuthMiddleware
+            - Mita\UranusSocketServer\Examples\Chat\Middlewares\AuthMiddleware
 room_publish:
     path: /room/{roomId}/publish
-    controller: Examples\Controllers\ChatController::publish
+    controller: Mita\UranusSocketServer\Examples\Chat\Controllers\ChatController

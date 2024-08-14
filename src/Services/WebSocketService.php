@@ -1,9 +1,14 @@
 <?php 
 namespace Mita\UranusSocketServer\Services;
 
+use Mita\UranusSocketServer\Controllers\ControllerInterface;
 use Mita\UranusSocketServer\Exceptions\RoutingException;
 use Mita\UranusSocketServer\Managers\ConnectionManager;
+use Mita\UranusSocketServer\Middlewares\MiddlewarePipeline;
 use Mita\UranusSocketServer\Middlewares\RoutingMiddleware;
+use Mita\UranusSocketServer\Packets\Packet;
+use Mita\UranusSocketServer\Packets\PacketFactory;
+use Mita\UranusSocketServer\Packets\PacketInterface;
 use Psr\Container\ContainerInterface;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
@@ -15,21 +20,29 @@ class WebSocketService implements MessageComponentInterface {
     protected $connections;
     protected $router;
     protected $matcher;
-    protected $authMiddleware;
+    protected $routingMiddleware;
     protected $container;
+    protected $packetFactory;
 
-    public function __construct(ConnectionManager $connections, RouterInterface $router, RoutingMiddleware $authMiddleware, ContainerInterface $container) {
+    public function __construct(
+        ConnectionManager $connections, 
+        RouterInterface $router, 
+        RoutingMiddleware $routingMiddleware, 
+        PacketFactory $packetFactory,
+        ContainerInterface $container
+    ) {
         $this->connections = $connections;
-        $this->authMiddleware = $authMiddleware;
+        $this->routingMiddleware = $routingMiddleware;
         $this->router = $router;
         $this->matcher = new UrlMatcher($router->getRouteCollection(), new RequestContext());
+        $this->packetFactory = $packetFactory;
         $this->container = $container;
     }
 
     public function onOpen(ConnectionInterface $conn) {
         echo "New connection from {$conn->resourceId}\n";
 
-        if (!$this->authMiddleware->onOpen($conn)) {
+        if (!$this->routingMiddleware->onOpen($conn)) {
             echo "Connection {$conn->resourceId} closed due to insufficient permissions\n";
             $conn->close();
             return;
@@ -56,16 +69,28 @@ class WebSocketService implements MessageComponentInterface {
      * @throws RoutingException
      */
     public function onMessage(ConnectionInterface $from, $msg) {
-        $this->authMiddleware->handle($from, $msg, function($conn, $route, $message, $parameters) {
-            [$controller, $action] = explode('::', $parameters['_controller']);
-            $controller = $this->container->get($controller);
+        $packet = $this->packetFactory->createFromJson($msg);
 
-            if (method_exists($controller, $action)) {
-                call_user_func_array([$controller, $action], [$conn, $message, $parameters]);
-            
-            } else {
-                throw new RoutingException("Method $action not found in controller $controller");
+        $this->routingMiddleware->handle($from, $packet, function (ConnectionInterface $conn, PacketInterface $packet, array $parameters) {
+            $pipeline = new MiddlewarePipeline();
+
+            if (isset($parameters['_middleware'])) {
+                foreach ($parameters['_middleware'] as $middleware) {
+                    $middlewareInstance = $this->container->get($middleware);
+                    $pipeline->add($middlewareInstance);
+                }
             }
+
+            // Thực thi pipeline và cuối cùng gọi controller
+            $pipeline->process($conn, $packet, function ($conn, $packet) use ($parameters) {
+                $controller = $this->container->get($parameters['_controller']);
+                if ($controller instanceof ControllerInterface) {
+                    $controller->handle($conn, $packet, $parameters);
+                    
+                } else {
+                    throw new RoutingException("Controller must implement ControllerInterface");
+                }
+            });
         });
     }
 

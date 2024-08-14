@@ -4,7 +4,8 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Mita\\UranusSocketServer\\": "src/"
+            "Mita\\UranusSocketServer\\": "src/", 
+            "Mita\\UranusSocketServer\\Examples\\": "examples/"
         }
     },
     "authors": [

@@ -1,14 +1,17 @@
 <?php
 namespace Mita\UranusSocketServer\Middlewares;
 
+use FTP\Connection;
+use Mita\UranusSocketServer\Controllers\ControllerInterface;
 use Mita\UranusSocketServer\Exceptions\RoutingException;
+use Mita\UranusSocketServer\Packets\PacketInterface;
 use Psr\Container\ContainerInterface;
 use Ratchet\ConnectionInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 
-class RoutingMiddleware
+class RoutingMiddleware implements MiddlewareInterface
 {
     protected $router;
     protected $matcher;
@@ -21,47 +24,21 @@ class RoutingMiddleware
         $this->container = $container;
     }
 
-    public function handle(ConnectionInterface $conn, $msg, callable $next)
+    public function handle(ConnectionInterface $conn, PacketInterface $packet, callable $next)
     {
-        $data = json_decode($msg, true);
-        if (!array_key_exists('route', $data) || !array_key_exists('msg', $data)) {
-            throw new RoutingException("Invalid message format");
-        }
-
-        $route = $data['route'];
-        $message = $data['msg'];
-
         try {
+            $route = $packet->getRoute();
+
             $parameters = $this->matcher->match($route);
-            if (!$parameters || !isset($parameters['_route'])) {
+            if (!$parameters || !isset($parameters['_controller'])) {
                 throw new RoutingException("Invalid route: $route");
             }
 
-            // Lấy middleware từ `defaults` trong route
-            if (isset($parameters['_middleware'])) {
-                foreach ($parameters['_middleware'] as $middlewareClass) {
-                    if (class_exists($middlewareClass)) {
-                        $middleware = $this->container->get($middlewareClass);
+            $next($conn, $packet, $parameters);
 
-                        if ($middleware instanceof MiddlewareInterface) {
-                            $middleware->handle($conn, $msg, function ($conn, $msg) use ($next, $parameters) {
-                                $next($conn, $parameters['route'], $msg, $parameters);
-                            });
-                        } else {
-                            throw new RoutingException("Middleware $middlewareClass must implement MiddlewareInterface");
-                        }
-                    } else {
-                        throw new RoutingException("Middleware class $middlewareClass does not exist");
-                    }
-                }
-            } else {
-                $next($conn, $route, $message, $parameters);
-            }
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             throw new RoutingException("Routing error: " . $e->getMessage(), 0, $e);
         }
-
-        return $next($conn, $route, $message, $parameters);
     }
 
     public function onOpen(ConnectionInterface $conn)
