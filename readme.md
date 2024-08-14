@@ -17,7 +17,7 @@
 Install the library using Composer:
 
 ```bash
-composer require yourname/uranus-socket-server
+composer require mita9497dev/uranus-socket-server
 ```
 
 ### Basic Usage Example
@@ -46,7 +46,7 @@ To get a feel for how UranusSocketServer works, you can try out the included cha
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/yourname/uranus-socket-server.git
+   git clone https://github.com/mita9497dev/uranus-socket-server.git
    cd uranus-socket-server
    ```
 
