@@ -1,14 +1,10 @@
 # UranusSocketServer Documentation
 
----
-
 ## Introduction
 
 Welcome to the **UranusSocketServer** documentation, your comprehensive guide to building scalable and high-performance WebSocket applications in PHP. With its modular design, `UranusSocketServer` provides a robust foundation for managing WebSocket connections, implementing middleware, and handling events seamlessly.
 
 This documentation will walk you through the installation process, setting up examples, and diving into the core APIs and customization options that `UranusSocketServer` offers.
-
----
 
 ## Getting Started with UranusSocketServer
 
@@ -50,8 +46,6 @@ php index.php
 ```
 
 The server will start on `127.0.0.1:7654` by default. You should see a message in your terminal confirming that the server has started successfully.
-
----
 
 ## Example: Building a Chat Application
 
@@ -451,8 +445,6 @@ The `PacketFactory` class creates `Packet` instances from JSON strings.
   ```php
   public function createFromJson(string $json): PacketInterface
   ```
-
----
 
 ## Conclusion
 
