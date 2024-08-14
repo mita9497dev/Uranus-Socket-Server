@@ -16,11 +16,12 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": ">=7.4",
+        "php": "^7.4 || ^8.0", 
         "cboden/ratchet": "^0.4.3",
         "symfony/routing": "^5.0",
         "php-di/php-di": "^6.3",
         "symfony/config": "^5.4",
         "symfony/yaml": "^5.4"
-    }
+    }, 
+    "version": "1.0.0"
 }
