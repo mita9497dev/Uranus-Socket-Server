@@ -10,6 +10,11 @@ class MiddlewarePipeline
     protected $middlewares = [];
     protected $index = 0;
 
+    public function __construct(array $middlewares = [])
+    {
+        $this->middlewares = $middlewares;
+    }
+
     public function add(MiddlewareInterface $middleware)
     {
         $this->middlewares[] = $middleware;
@@ -40,5 +45,10 @@ class MiddlewarePipeline
         } else {
             $finalHandler($conn, $packet);
         }
+    }
+
+    public function getMiddlewares()
+    {
+        return $this->middlewares;
     }
 }

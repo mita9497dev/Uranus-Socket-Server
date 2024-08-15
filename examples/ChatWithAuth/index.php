@@ -2,6 +2,7 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+use Mita\UranusSocketServer\Examples\ChatWithAuth\Plugins\AuthPlugin;
 use Mita\UranusSocketServer\SocketServer;
 
 $settings = [
@@ -11,4 +12,8 @@ $settings = [
 ];
 
 $socketServer = new SocketServer($settings);
+
+$authPlugin = new AuthPlugin('valid_token', 'access_token');
+$socketServer->addPlugin($authPlugin);
+
 $socketServer->run();

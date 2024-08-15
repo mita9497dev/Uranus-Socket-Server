@@ -6,8 +6,10 @@ use DI\ContainerBuilder;
 use Mita\UranusSocketServer\Configs\Config;
 use Mita\UranusSocketServer\Events\EventDispatcher;
 use Mita\UranusSocketServer\Managers\ConnectionManager;
+use Mita\UranusSocketServer\Middlewares\MiddlewarePipeline;
 use Mita\UranusSocketServer\Middlewares\RoutingMiddleware;
 use Mita\UranusSocketServer\Packets\PacketFactory;
+use Mita\UranusSocketServer\Plugins\PluginManager;
 use Mita\UranusSocketServer\Services\WebSocketService;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Routing\Loader\YamlFileLoader;
@@ -27,6 +29,7 @@ class ServiceProvider
         $this->registerConnectionManager($containerBuilder);
         $this->registerRoutingMiddleware($containerBuilder);
         $this->registerWebSocketService($containerBuilder);
+        $this->registerMiddlewarePipeline($containerBuilder);
 
         $containerBuilder->addDefinitions($userDiConfig);
 
@@ -76,7 +79,7 @@ class ServiceProvider
     {
         $containerBuilder->addDefinitions([
             RoutingMiddleware::class => function (ContainerInterface $container) {
-                return new RoutingMiddleware($container->get(Router::class), $container);
+                return new RoutingMiddleware($container->get(Router::class), $container->get(EventDispatcher::class));
             }
         ]);
     }
@@ -96,7 +99,8 @@ class ServiceProvider
                     $container->get(ConnectionManager::class),
                     $container->get(Router::class),
                     $container->get(RoutingMiddleware::class),
-                    $container->get(PacketFactory::class),
+                    $container->get(PacketFactory::class), 
+                    $container->get(EventDispatcher::class),
                     $container
                 );
             }
@@ -123,5 +127,19 @@ class ServiceProvider
                 }
             }
         }
+    }
+
+    public function registerMiddlewarePipeline(ContainerBuilder $containerBuilder)
+    {
+        $containerBuilder->addDefinitions([
+            MiddlewarePipeline::class => \DI\create(MiddlewarePipeline::class)
+        ]);
+    }
+
+    public function registerPluginManager(ContainerBuilder $containerBuilder)
+    {
+        $containerBuilder->addDefinitions([
+            PluginManager::class => \DI\create(PluginManager::class)
+        ]);
     }
 }

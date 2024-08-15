@@ -5,6 +5,9 @@ use DI\ContainerBuilder;
 use Mita\UranusSocketServer\Configs\ServiceProvider;
 use Mita\UranusSocketServer\Events\EventDispatcher;
 use Mita\UranusSocketServer\Events\EventDispatcherInterface;
+use Mita\UranusSocketServer\Middlewares\MiddlewarePipeline;
+use Mita\UranusSocketServer\Plugins\PluginInterface;
+use Mita\UranusSocketServer\Plugins\PluginManager;
 use Mita\UranusSocketServer\Services\WebSocketService;
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
@@ -13,6 +16,9 @@ use Ratchet\WebSocket\WsServer;
 class SocketServer 
 {
     protected $container;
+
+    protected $pluginManager;
+
     private $host;
     private $port;
 
@@ -31,14 +37,39 @@ class SocketServer
         $serviceProvider = new ServiceProvider();
         $serviceProvider->register($containerBuilder, $settings, $userDiConfig);
 
+        /** @var ContainerInterface */
         $this->container = $containerBuilder->build();
+
+        /** @var PluginManager */
+        $this->pluginManager = $this->container->get(PluginManager::class);
 
         $this->host = $settings['host'];
         $this->port = $settings['port'];
     }
 
+    public function addPlugin(PluginInterface $plugin)
+    {
+        $this->pluginManager->addPlugin($plugin);
+    }
+
     public function run() 
     {
+        
+        /** @var EventDispatcherInterface $dispatcher */
+        $dispatcher = $this->container->get(EventDispatcher::class);
+        
+        $this->pluginManager->registerPlugins($dispatcher);
+        $this->pluginManager->bootPlugins();
+
+        // Kích hoạt sự kiện 'server.boot'
+        $dispatcher->dispatch('server.boot');
+
+        /** @var MiddlewarePipeline $middlewarePipeline */
+        $middlewarePipeline = $this->container->get(MiddlewarePipeline::class);
+
+        // Kích hoạt sự kiện 'middleware.register'
+        $dispatcher->dispatch('middleware.register', $middlewarePipeline);
+
         /** @var WebSocketService $webSocketService */
         $webSocketService = $this->container->get(WebSocketService::class);
         

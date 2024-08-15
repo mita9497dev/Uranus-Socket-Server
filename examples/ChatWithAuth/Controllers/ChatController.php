@@ -1,6 +1,6 @@
 <?php
 
-namespace Mita\UranusSocketServer\Examples\Chat\Controllers;
+namespace Mita\UranusSocketServer\Examples\ChatWithAuth\Controllers;
 
 use Mita\UranusSocketServer\Controllers\BaseController;
 use Mita\UranusSocketServer\Examples\Chat\Services\ChatService;
@@ -28,7 +28,7 @@ class ChatController extends BaseController
             $this->chatService->joinRoom($conn, $params['roomId']);
             echo "User {$conn->resourceId} joined room {$params['roomId']}\n";
 
-        } else if ($params['_route'] === 'room_publish') {
+        } elseif ($params['_route'] === 'room_publish') {
             if (!$this->chatService->isJoined($conn, $params['roomId'])) {
                 $conn->send("You are not in the room");
                 return;

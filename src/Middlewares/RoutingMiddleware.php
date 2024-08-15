@@ -1,11 +1,10 @@
 <?php
 namespace Mita\UranusSocketServer\Middlewares;
 
-use FTP\Connection;
-use Mita\UranusSocketServer\Controllers\ControllerInterface;
+use Mita\UranusSocketServer\Events\EventDispatcher;
+use Mita\UranusSocketServer\Events\EventDispatcherInterface;
 use Mita\UranusSocketServer\Exceptions\RoutingException;
 use Mita\UranusSocketServer\Packets\PacketInterface;
-use Psr\Container\ContainerInterface;
 use Ratchet\ConnectionInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Routing\RequestContext;
@@ -14,14 +13,16 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 class RoutingMiddleware implements MiddlewareInterface
 {
     protected $router;
+    
     protected $matcher;
-    protected $container;
 
-    public function __construct(RouterInterface $router, ContainerInterface $container)
+    protected EventDispatcherInterface $eventDispatcher;
+
+    public function __construct(RouterInterface $router, EventDispatcher $eventDispatcher)
     {
         $this->router = $router;
         $this->matcher = new UrlMatcher($router->getRouteCollection(), new RequestContext());
-        $this->container = $container;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function handle(ConnectionInterface $conn, PacketInterface $packet, callable $next)
@@ -43,6 +44,6 @@ class RoutingMiddleware implements MiddlewareInterface
 
     public function onOpen(ConnectionInterface $conn)
     {
-        return true;
+        $this->eventDispatcher->dispatch('connection.open', $conn);
     }
 }
