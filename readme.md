@@ -1,3 +1,7 @@
+Here is a revised and more structured version of the **UranusSocketServer** documentation, now including additional sections on configuring routes, creating controllers, and understanding packet structure after the connection is established:
+
+---
+
 # UranusSocketServer
 
 **UranusSocketServer** is a powerful, scalable, and easy-to-use PHP library designed for building high-performance WebSocket applications. With features like a flexible middleware pipeline, comprehensive event management, and efficient connection handling, UranusSocketServer empowers developers to create sophisticated WebSocket solutions effortlessly.
@@ -10,9 +14,9 @@
 - **Customizable Routing**: Route messages to controllers with support for middleware.
 - **Event-Driven**: Hook into key lifecycle events for enhanced control.
 
-## Quick Start
+## Quick Start Guide
 
-### Installation
+### 1. Installation
 
 Install the library using Composer:
 
@@ -20,172 +24,232 @@ Install the library using Composer:
 composer require mita9497dev/uranus-socket-server
 ```
 
-### Running the Basic Chat Application Example
+### 2. Configuration
 
-To get a feel for how UranusSocketServer works, you can try out the included basic chat application example.
+#### 2.1 Setting Up Routes
 
-#### 1. **Clone the Repository:**
+Create a `routes.yaml` file to define your WebSocket routes:
 
-   ```bash
-   git clone https://github.com/mita9497dev/uranus-socket-server.git
-   cd uranus-socket-server
-   ```
+```yaml
+join_room:
+    path: /room/{roomId}/join
+    controller: Mita\UranusSocketServer\Examples\Chat\Controllers\ChatController
 
-#### 2. **Install Dependencies:**
+room_publish:
+    path: /room/{roomId}/publish
+    controller: Mita\UranusSocketServer\Examples\Chat\Controllers\ChatController
+```
 
-   ```bash
-   composer install
-   ```
+#### 2.2 Creating a Controller
 
-#### 3. **Navigate to the Example Directory:**
+Create a controller to handle incoming WebSocket messages:
 
-   ```bash
-   cd examples/chat
-   ```
+```php
+<?php
 
-#### 4. **Introduction to `index.php`:**
+namespace Mita\UranusSocketServer\Examples\Chat\Controllers;
 
-   The `index.php` file is the entry point for the WebSocket server. It sets up the server with minimal configuration, demonstrating how easy it is to get started with UranusSocketServer:
+use Mita\UranusSocketServer\Controllers\BaseController;
+use Mita\UranusSocketServer\Managers\ConnectionManager;
+use Mita\UranusSocketServer\Packets\PacketInterface;
+use Ratchet\ConnectionInterface;
 
-   ```php
-   require __DIR__ . '/vendor/autoload.php';
+class ChatController extends BaseController
+{
+    public function handle(ConnectionInterface $conn, PacketInterface $packet, array $params)
+    {
+        if ($params['_route'] === 'join_room') {
+            $conn->send("You joined room " . $params['roomId']);
+        } elseif ($params['_route'] === 'room_publish') {
+            $conn->send("Message to room " . $params['roomId'] . ": " . $packet->getMessage());
+        }
+    }
+}
+```
 
-   use Mita\UranusSocketServer\SocketServer;
+#### 2.3 Understanding Packet Structure
 
-   $settings = [
-       'host' => '127.0.0.1',
-       'port' => 7654,
-       'router_path' => __DIR__ . '/routes.yaml'
-   ];
+When sending data to the server, the packet should be structured as a JSON object with at least two keys: `route` and `msg`.
 
-   $socketServer = new SocketServer($settings);
-   $socketServer->run();
-   ```
+- **route**: Specifies the WebSocket route that the packet should be sent to.
+- **msg**: Contains the message or data you wish to send.
 
-#### 5. **Run the WebSocket Server:**
+**Example Packet:**
 
-   Start the WebSocket server with the following command:
+```json
+{
+    "route": "/room/123/join",
+    "msg": "Hello, I'm joining room 123"
+}
+```
 
-   ```bash
-   php index.php
-   ```
+### 3. Running the Basic Chat Application Example
 
-#### 6. **Connect to the Server:**
+This section demonstrates how to quickly set up a simple WebSocket chat server.
 
-   Use a WebSocket client to connect to `ws://127.0.0.1:7654`. You can then join a room and send messages using JSON payloads:
+#### 3.1 Clone the Repository
 
-   **Join a Room:**
+```bash
+git clone https://github.com/mita9497dev/uranus-socket-server.git
+cd uranus-socket-server
+```
 
-   ```json
-   {
-       "route": "/room/123/join",
-       "msg": "Joining room 123"
-   }
-   ```
+#### 3.2 Install Dependencies
 
-   **Send a Message to the Room:**
+```bash
+composer install
+```
 
-   ```json
-   {
-       "route": "/room/123/publish",
-       "msg": "Hello, everyone!"
-   }
-   ```
+#### 3.3 Navigate to the Example Directory
 
-### Running the ChatWithAuth Application Example
+```bash
+cd examples/chat
+```
 
-Building on the basic chat functionality, this example adds an authentication layer. The **ChatWithAuth** example requires users to authenticate with a token before they can join a chat room or send messages.
+#### 3.4 Introduction to `index.php`
 
-#### 1. **Clone the Repository:**
+The `index.php` file is the entry point for the WebSocket server. It initializes the server with basic settings:
 
-   ```bash
-   git clone https://github.com/mita9497dev/uranus-socket-server.git
-   cd uranus-socket-server
-   ```
+```php
+require __DIR__ . '/vendor/autoload.php';
 
-#### 2. **Install Dependencies:**
+use Mita\UranusSocketServer\SocketServer;
 
-   ```bash
-   composer install
-   ```
+$settings = [
+    'host' => '127.0.0.1',
+    'port' => 7654,
+    'router_path' => __DIR__ . '/routes.yaml'
+];
 
-#### 3. **Navigate to the Example Directory:**
+$socketServer = new SocketServer($settings);
+$socketServer->run();
+```
 
-   Navigate to the `ChatWithAuth` example directory:
+#### 3.5 Run the WebSocket Server
 
-   ```bash
-   cd examples/ChatWithAuth
-   ```
+Start the WebSocket server with:
 
-#### 4. **Introduction to `index.php`:**
+```bash
+php index.php
+```
 
-   Similar to the basic chat example, the `index.php` file in the `ChatWithAuth` example is straightforward, but it includes an additional step to register an authentication plugin:
+#### 3.6 Connect to the Server
 
-   ```php
-   require __DIR__ . '/../../vendor/autoload.php';
+Use a WebSocket client to connect to `ws://127.0.0.1:7654` and send JSON packets like:
 
-   use Mita\UranusSocketServer\Examples\ChatWithAuth\Plugins\AuthPlugin;
-   use Mita\UranusSocketServer\SocketServer;
+**Join a Room:**
 
-   $settings = [
-       'host' => '127.0.0.1',
-       'port' => 7654,
-       'router_path' => __DIR__ . '/routes.yaml'
-   ];
+```json
+{
+    "route": "/room/123/join",
+    "msg": "Joining room 123"
+}
+```
 
-   $socketServer = new SocketServer($settings);
+**Send a Message to the Room:**
 
-   $authPlugin = new AuthPlugin('your_secret_key');
-   $socketServer->addPlugin($authPlugin);
+```json
+{
+    "route": "/room/123/publish",
+    "msg": "Hello, everyone!"
+}
+```
 
-   $socketServer->run();
-   ```
+### 4. Running the ChatWithAuth Application Example
 
-#### 5. **Update the Secret Key:**
+This example builds on the basic chat functionality by adding token-based authentication.
 
-   Replace `'your_secret_key'` with your desired secret key for authentication.
+#### 4.1 Clone the Repository
 
-#### 6. **Run the WebSocket Server:**
+```bash
+git clone https://github.com/mita9497dev/uranus-socket-server.git
+cd uranus-socket-server
+```
 
-   Start the WebSocket server:
+#### 4.2 Install Dependencies
 
-   ```bash
-   php index.php
-   ```
+```bash
+composer install
+```
 
-#### 7. **Connect to the Server:**
+#### 4.3 Navigate to the Example Directory
 
-   Use a WebSocket client to connect to `ws://127.0.0.1:7654`, including the `access_token` in the URI query string.
+Navigate to the `ChatWithAuth` example directory:
 
-   **Example Connection URI:**
+```bash
+cd examples/ChatWithAuth
+```
 
-   ```plaintext
-   ws://127.0.0.1:7654/?access_token=your_secret_key
-   ```
+#### 4.4 Introduction to `index.php`
 
-#### 8. **Join a Room:**
+In this example, the `index.php` file registers an `AuthPlugin` for token-based authentication:
 
-   Authenticate and join a chat room with the following JSON payload:
+```php
+require __DIR__ . '/../../vendor/autoload.php';
 
-   ```json
-   {
-       "route": "/room/123/join",
-       "msg": "Joining room 123"
-   }
-   ```
+use Mita\UranusSocketServer\Examples\ChatWithAuth\Plugins\AuthPlugin;
+use Mita\UranusSocketServer\SocketServer;
 
-#### 9. **Send a Message to the Room:**
+$settings = [
+    'host' => '127.0.0.1',
+    'port' => 7654,
+    'router_path' => __DIR__ . '/routes.yaml'
+];
 
-   Once authenticated and joined, send a message to the room:
+$socketServer = new SocketServer($settings);
 
-   ```json
-   {
-       "route": "/room/123/publish",
-       "msg": "Hello, authenticated users!"
-   }
-   ```
+$authPlugin = new AuthPlugin('your_secret_key');
+$socketServer->addPlugin($authPlugin);
 
-### Explanation of `AuthPlugin.php`
+$socketServer->run();
+```
+
+This example demonstrates how to create and integrate a custom plugin. By following this pattern, you can develop and register your plugins to extend the server’s capabilities.
+
+#### 4.5 Update the Secret Key
+
+Replace `'your_secret_key'` with your desired secret key for authentication.
+
+#### 4.6 Run the WebSocket Server
+
+Start the WebSocket server:
+
+```bash
+php index.php
+```
+
+#### 4.7 Connect to the Server
+
+Use a WebSocket client to connect to `ws://127.0.0.1:7654`, including the `access_token` in the URI query string.
+
+**Example Connection URI:**
+
+```plaintext
+ws://127.0.0.1:7654/?access_token=your_secret_key
+```
+
+#### 4.8 Join a Room
+
+Authenticate and join a chat room with the following JSON payload:
+
+```json
+{
+    "route": "/room/123/join",
+    "msg": "Joining room 123"
+}
+```
+
+#### 4.9 Send a Message to the Room
+
+Once authenticated and joined, send a message to the room:
+```json
+{
+    "route": "/room/123/publish",
+    "msg": "Hello, authenticated users!"
+}
+```
+
+#### 4.10 Explanation of `AuthPlugin.php`
 
 The `AuthPlugin.php` file is a custom plugin that adds token-based authentication to your WebSocket server. Below is a detailed explanation of its key parts:
 
@@ -482,7 +546,7 @@ By following this pattern, you can extend the functionality of your WebSocket se
 
 ### Overview
 
-The UranusSocketServer provides a robust event-driven architecture, allowing you to hook into various lifecycle events of the WebSocket server. This section documents the events that are available, the context in which they are triggered, the parameters they provide, and examples of how to use them.
+The **UranusSocketServer** library provides a robust event-driven architecture, allowing you to hook into various lifecycle events of the WebSocket server. This section documents the events that are available, the context in which they are triggered, the parameters they provide, and examples of how to use them.
 
 ### 1. **`connection.opened`**
    - **Description:** Dispatched when a new WebSocket connection is established.
@@ -591,8 +655,6 @@ The UranusSocketServer provides a robust event-driven architecture, allowing you
          echo "Message sent to route {$route}: {$message}\n";
      });
      ```
-
-
 Thank you for using **UranusSocketServer**! We hope it helps you build your next WebSocket application with ease. If you have any questions or need support, feel free to open an issue or reach out to the community.
 
 Happy coding!
