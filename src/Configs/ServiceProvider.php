@@ -5,6 +5,7 @@ namespace Mita\UranusSocketServer\Configs;
 use DI\ContainerBuilder;
 use Mita\UranusSocketServer\Configs\Config;
 use Mita\UranusSocketServer\Events\EventDispatcher;
+use Mita\UranusSocketServer\Events\EventDispatcherInterface;
 use Mita\UranusSocketServer\Managers\ConnectionManager;
 use Mita\UranusSocketServer\Middlewares\MiddlewarePipeline;
 use Mita\UranusSocketServer\Middlewares\RoutingMiddleware;
@@ -62,7 +63,7 @@ class ServiceProvider
     protected function registerEventDispatcher(ContainerBuilder $containerBuilder)
     {
         $containerBuilder->addDefinitions([
-            EventDispatcher::class => \DI\create(EventDispatcher::class),
+            EventDispatcherInterface::class => \DI\create(EventDispatcher::class),
         ]);
     }
 
@@ -70,7 +71,7 @@ class ServiceProvider
     {
         $containerBuilder->addDefinitions([
             ConnectionManager::class => function (ContainerInterface $container) {
-                return new ConnectionManager($container->get(EventDispatcher::class));
+                return new ConnectionManager($container->get(EventDispatcherInterface::class));
             }
         ]);
     }
@@ -79,7 +80,7 @@ class ServiceProvider
     {
         $containerBuilder->addDefinitions([
             RoutingMiddleware::class => function (ContainerInterface $container) {
-                return new RoutingMiddleware($container->get(Router::class), $container->get(EventDispatcher::class));
+                return new RoutingMiddleware($container->get(Router::class), $container->get(EventDispatcherInterface::class));
             }
         ]);
     }
@@ -100,7 +101,7 @@ class ServiceProvider
                     $container->get(Router::class),
                     $container->get(RoutingMiddleware::class),
                     $container->get(PacketFactory::class), 
-                    $container->get(EventDispatcher::class),
+                    $container->get(EventDispatcherInterface::class),
                     $container
                 );
             }

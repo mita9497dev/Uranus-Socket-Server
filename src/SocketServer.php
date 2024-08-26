@@ -3,7 +3,6 @@ namespace Mita\UranusSocketServer;
 
 use DI\ContainerBuilder;
 use Mita\UranusSocketServer\Configs\ServiceProvider;
-use Mita\UranusSocketServer\Events\EventDispatcher;
 use Mita\UranusSocketServer\Events\EventDispatcherInterface;
 use Mita\UranusSocketServer\Middlewares\MiddlewarePipeline;
 use Mita\UranusSocketServer\Plugins\PluginInterface;
@@ -56,7 +55,7 @@ class SocketServer
     {
         
         /** @var EventDispatcherInterface $dispatcher */
-        $dispatcher = $this->container->get(EventDispatcher::class);
+        $dispatcher = $this->container->get(EventDispatcherInterface::class);
         
         $this->pluginManager->registerPlugins($dispatcher);
         $this->pluginManager->bootPlugins();
@@ -82,7 +81,7 @@ class SocketServer
     public function registerEventListener(string $eventName, callable $listener)
     {
         /** @var EventDispatcherInterface $dispatcher */
-        $dispatcher = $this->container->get(EventDispatcher::class);
+        $dispatcher = $this->container->get(EventDispatcherInterface::class);
         $dispatcher->addListener($eventName, $listener);
     }
 }
