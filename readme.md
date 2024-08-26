@@ -21,7 +21,7 @@ Here is a revised and more structured version of the **UranusSocketServer** docu
 Install the library using Composer:
 
 ```bash
-composer require mita9497dev/uranus-socket-server
+composer require mita/uranus-socket-server
 ```
 
 ### 2. Configuration
